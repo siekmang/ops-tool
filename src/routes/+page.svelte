@@ -1,10 +1,6 @@
 <script lang="ts">
-  import { Command } from '@tauri-apps/plugin-shell'
-
-  function testLxdTool() {
-
-  }
-
+  import { openUrl } from "@tauri-apps/plugin-opener";
+  import { Command } from "@tauri-apps/plugin-shell";
 </script>
 
 <main class="container">
@@ -13,38 +9,43 @@
   <!--Need to set default text editor/ide-->
   <h1>Greg's Ops Tool</h1>
 
-  <div id='tools-menus'>
-    <div id='lxd-tools'>
+  <div id="tools-menus">
+    <div id="lxd-tools">
       <h2>LXD Tools</h2>
       <!--Close any other windows to open this-->
       <button>Open lxd-tools</button>
       <button>Test lxd-tools</button>
       <button>Build lxd-tools locally</button>
       <button>lxd-tools git status</button>
-      <button>Open lxd-tools in GitHub</button>
+      <button
+        onclick={() =>
+          openUrl(
+            "https://github.com/Unity-Environmental-University/lxd-tools",
+          )}>Open lxd-tools in GitHub</button
+      >
     </div>
 
-    <div id='misc'>
+    <div id="misc">
       <h2>Misc</h2>
       <!--Want this to evolve to let the user do text input, browse input or recent dropdown -->
-      <input type="text" id="path" placeholder="Repo path"/>
+      <input type="text" id="path" placeholder="Repo path" />
       <button>Open Repo</button>
       <button>Repo git status</button>
     </div>
   </div>
-
-
 </main>
 
 <style>
   :root {
-    background-color:#1d2433;
+    background-color: #1d2433;
     color: #d7dce2;
   }
 
   h1 {
     text-align: center;
-    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-family:
+      "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+      "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
   }
 
   h2 {
@@ -55,7 +56,7 @@
     background-color: #6679a4;
     color: #d8dce2;
     border-radius: 5px;
-    margin: .1vh 0;
+    margin: 0.1vh 0;
     padding: 2vh 0;
   }
 
@@ -69,7 +70,8 @@
     gap: 2rem;
   }
 
-  #lxd-tools, #misc {
+  #lxd-tools,
+  #misc {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -86,5 +88,4 @@
   ::placeholder {
     color: #a2aabc;
   }
-
 </style>
