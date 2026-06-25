@@ -16,6 +16,8 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "electron": "^42.5.0"
+    "@picocss/pico": "^2.1.1",
+    "electron": "^42.5.0",
+    "sass": "^1.101.0"
   }
 }
