@@ -1,7 +1,15 @@
-# Tauri + SvelteKit + TypeScript
+# ops-tool
 
-This template should help get you started developing with Tauri, SvelteKit and TypeScript in Vite.
+To install dependencies:
 
-## Recommended IDE Setup
+```bash
+bun install
+```
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
+To run:
+
+```bash
+bun run main.js
+```
+
+This project was created using `bun init` in bun v1.3.14. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
