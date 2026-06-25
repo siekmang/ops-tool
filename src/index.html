@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <link rel="stylesheet" href="../node_modules/@picocss/pico/css/pico.min.css">
+  <link rel="stylesheet" href="style/overrides.css">
+</head>
+
+<main class="container">
+  <!--TODO Want better fonts-->
+  <!--TODO Style better, especially buttons-->
+  <!--TODO Need to set default text editor/ide-->
+  <h1>Greg's Ops Tool</h1>
+
+  <div id="tools-menus">
+    <div id="lxd-tools">
+      <h2>LXD Tools</h2>
+      <button onclick="window.electronApi.openInIde('lxd-tools')">Open lxd-tools in IDE</button>
+      <button onclick="window.electronApi.open('lxd-tools')">Open lxd-tools directory</button>
+      <button onclick="window.electronApi.testLxdTools()">Test lxd-tools</button>
+      <button onclick="window.electronApi.buildLxdTools()">Build lxd-tools locally</button>
+      <button onclick="window.electronApi.status('lxd-tool')">lxd-tools git status</button>
+      <button onclick="window.electronApi.openLink('https://github.com/Unity-Environmental-University/lxd-tools')">Open lxd-tools in GitHub</button>
+    </div>
+
+    <div id="misc">
+      <h2>Repo Control</h2>
+      <!--TODO Want this to evolve to let the user do text input, browse input or recent dropdown -->
+      <input type="text" id="path" placeholder="Repo path" />
+      <button onclick="window.electronApi.openInIde(document.getElementById('path').value)">Open Repo in IDE</button>
+      <button onclick="window.electionApi.status(document.getElementById('path').value)">Repo git status</button>
+      <button onclick="window.electronApi.open('dev-folder')">Dev Folder</button>
+    </div>
+    <div id="productivity-menu">
+      <h2>Task Tracking</h2>
+      <button onclick="window.electronApi.openLink('https://trello.com/b/XTLJLLI9/agile-learning-tech-board?filter=member:greg_siekman')">Trello</button>
+      <button onclick="window.electronApi.open('todoist')">Todoist</button>
+      <button>Daily Sync</button>
+    </div>
+    <div id="course-menu">
+      <h2>Course Navigation</h2>
+      <button onclick="window.electronApi.openLink('https://unity.instructure.com/courses/8061526')">Open TEST101</button>
+      <button onclick="window.electronApi.openLink('https://unity.instructure.com/courses/8045765')">Open TEST505</button>
+      <button>Reset TEST101</button>
+      <button>Reset TEST505</button>
+    </div>
+  </div>
+
+  <!--
+  <div class="console-wrapper">
+    <div class="console-header">
+      <span>Console</span>
+      <button id="clear-btn">Clear</button>
+    </div>
+    <pre id="console-window"></pre>
+  </div>
+</main>
+ -->
