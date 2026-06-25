@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <link rel="stylesheet" href="style/global.scss">
   <link rel="stylesheet" href="node_modules/@picocss/pico/css/pico.min.css">
+  <link rel="stylesheet" href="style/overrides.css">
 </head>
 
 <main class="container">
@@ -26,17 +26,25 @@
     </div>
 
     <div id="misc">
-      <h2>Misc</h2>
+      <h2>Repo Control</h2>
       <!--Want this to evolve to let the user do text input, browse input or recent dropdown -->
       <input type="text" id="path" placeholder="Repo path" />
       <button>Open Repo</button>
       <button>Repo git status</button>
-      <div id="productivity-menu">
-        <button>Dev Folder</button>
-        <button>Trello</button>
-        <button>Todoist</button>
-        <!--Want to add open TEST101, TEST505, reset TEST101/505, and a daily sync button for a script that pulls tasks from Todoist -->
-      </div>
+      <button>Dev Folder</button>
+    </div>
+    <div id="productivity-menu">
+      <h2>Task Tracking</h2>
+      <button>Trello</button>
+      <button>Todoist</button>
+      <button>Daily Sync</button>
+    </div>
+    <div id="course-menu">
+      <h2>Course Navigation</h2>
+      <button>Open TEST101</button>
+      <button>Open TEST505</button>
+      <button>Reset TEST101</button>
+      <button>Reset TEST505</button>
     </div>
   </div>
 
