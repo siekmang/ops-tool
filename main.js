@@ -2,9 +2,18 @@
 
 /** @typedef {keyof typeof PATH_REGISTRY} RegistryKey */
 
-const { app, BrowserWindow, ipcMain } = require('electron');
-const { exec, spawn } = require('child_process');
-const path = require('path');
+import { app, BrowserWindow, ipcMain } from 'electron';
+import { spawn, exec } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Recreate __dirname for ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+import { dailySync } from './src/js/scripts/dailySync.js';
+import { logFaq } from './src/js/scripts/logFAQ.js';
+import { resetTest } from './src/js/scripts/resetTest.js';
 
 const os = process.platform;
 
@@ -121,6 +130,18 @@ ipcMain.on('run-command', (event, { command, args, key }) => {
   cmd.stdout.on('data', handleData);
   cmd.stderr.on('data', handleData);
   cmd.on('error', (err) => event.sender.send('command-error', err.message));
+});
+
+ipcMain.on('run-script', (_event, name) => {
+  if (name === 'daily-sync') {
+    dailySync();
+  } else if (name === 'log-faq') {
+    logFaq();
+  } else if (name === 'reset-test') {
+    resetTest();
+  } else {
+    throw new Error('Unexpected script name');
+  }
 });
 
 const createWindow = () => {

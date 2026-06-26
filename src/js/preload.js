@@ -29,4 +29,6 @@ contextBridge.exposeInMainWorld('electronApi', {
    */
   onError: (callback) =>
     ipcRenderer.on('command-error', (_event, data) => callback(data)),
+  /** @param {string} name - The name of the script we're running */
+  runScript: (name) => ipcRenderer.send('run-script', name),
 });

@@ -42,15 +42,14 @@
       <h2>Task Tracking</h2>
       <button onclick="window.electronApi.openLink('https://trello.com/b/XTLJLLI9/agile-learning-tech-board?filter=member:greg_siekman')">Trello</button>
       <button onclick="window.electronApi.open('todoist')">Todoist</button>
-      <button>Daily Sync</button>
-      <button>Log FAQ</button>
+      <button onclick="window.electronApi.runScript('daily-sync')">Daily Sync</button>
+      <button onclick="window.electronApi.runScript('log-faq')">Log FAQ</button>
     </div>
     <div id="course-menu">
       <h2>Course Navigation</h2>
       <button onclick="window.electronApi.openLink('https://unity.instructure.com/courses/8061526')">Open TEST101</button>
       <button onclick="window.electronApi.openLink('https://unity.instructure.com/courses/8045765')">Open TEST505</button>
-      <button>Reset TEST101</button>
-      <button>Reset TEST505</button>
+      <button onclick="window.electronApi.runScript('reset-test')">Reset Test Course</button>
     </div>
   </div>
 
