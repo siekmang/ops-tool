@@ -1,0 +1,27 @@
+:root {
+  background-color: #1d2433;
+  color: #d7dce2;
+}
+
+#output-modal {
+  position: fixed;
+  top: 10%; left: 10%;
+  width: 80%; height: 80%;
+  background: black;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+#output-box {
+  flex-grow: 1;
+  height: 90%;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  padding: 10px;
+  background: #222;
+  margin-bottom: 10px;
+}

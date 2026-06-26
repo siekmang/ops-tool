@@ -3,7 +3,7 @@
 /** @typedef {keyof typeof PATH_REGISTRY} RegistryKey */
 
 const { app, BrowserWindow, ipcMain } = require('electron');
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 const path = require('path');
 
 const os = process.platform;
@@ -14,23 +14,6 @@ class UnexpectedOsError extends Error {
     this.name = 'UnexpectedOsError';
   }
 }
-
-/**
- * Opens a link in a browser. Designed to support Mac or Windows. Throws an error if the user isn't on either.
- * @param {Electron.IpcMainEvent} event - The thing that triggers this
- * @param {string} url - The URL to open in browser
- */
-ipcMain.on('open-link', (_event, url) => {
-  if (os === 'darwin') {
-    exec(`open -a "Vivaldi" ${url}`);
-  } else if (os === 'win32') {
-    exec(
-      `start "" "C:\\Program Files\\Vivaldi\\Application\\vivaldi.exe" ${url}`
-    );
-  } else {
-    throw new UnexpectedOsError();
-  }
-});
 
 const PATH_REGISTRY = {
   todoist: {
@@ -48,7 +31,7 @@ const PATH_REGISTRY = {
 };
 
 /**
- * @param {import('electron').IpcMainEvent} _event
+ * @param {Electron.IpcMainEvent} _event
  * @param {RegistryKey} key - The file/app/directory to be opened, in the form the PATH_REGISTRY expects it.
  */
 ipcMain.on('open', (_event, key) => {
@@ -68,8 +51,25 @@ ipcMain.on('open', (_event, key) => {
 });
 
 /**
+ * Opens a link in a browser. Designed to support Mac or Windows. Throws an error if the user isn't on either.
+ * @param {Electron.IpcMainEvent} event - The thing that triggers this
+ * @param {string} url - The URL to open in browser
+ */
+ipcMain.on('open-link', (_event, url) => {
+  if (os === 'darwin') {
+    exec(`open -a "Vivaldi" ${url}`);
+  } else if (os === 'win32') {
+    exec(
+      `start "" "C:\\Program Files\\Vivaldi\\Application\\vivaldi.exe" ${url}`
+    );
+  } else {
+    throw new UnexpectedOsError();
+  }
+});
+
+/**
  * This function opens the repo in question in editor of choice(right now Zed.) It should be relatively easy to change if I move IDEs again(just change the command,) and I elected for simplicity over flexibility on this. The path registry for this is meant to be expanded if needed, but there is a fallback in here for key to be the path we want open, which I'm thinking will work for the open repo button that let's me select the repo. That should be platform agnostic because the path selection will be happening on the device.
- * @param {import('electron').IpcMainEvent} _event
+ * @param {Electron.IpcMainEvent} _event
  * @param {RegistryKey | string} key - Either the RegistryKey for the repo we want to open or a string version of the file path to open in the IDE.
  */
 ipcMain.on('open-in-ide', (_event, key) => {
@@ -87,74 +87,46 @@ ipcMain.on('open-in-ide', (_event, key) => {
   exec(`zed "${path}"`);
 });
 
-/**
- * This function shows git status of the desired repo. If key is a RegistryKey in PATH_REGISTRY, it pulls from that, if not it defaults to treating key like the path.
- * @param {import('electron').IpcMainEvent} _event
- * @param {RegistryKey | string} key - Either the RegistryKey for the repo we want or a string version of the file path to open in the IDE.
+/** Controls runnings commands(mostly npm and git stuff)
+ * @param {Electron.IpcMainEvent} event - The thing that triggers this
+ * @param {string} command  - top level command(again, usually npm or git)
+ * @param {string[]} args - the args passed on the command
+ * @param {string} key - the key associated with the PATH_REGISTRY entry for the thing we want to target
+ *
  */
-ipcMain.on('git-status', (_event, key) => {
-  let path;
-
-  // @ts-expect-error Doesn't like that key could not align with one of our keys in PATH_REGISTRY, but we have enough control over that that I'm not worried.
+ipcMain.on('run-command', (event, { command, args, key }) => {
+  // @ts-expect-error doesn't like implicit any.
   const item = PATH_REGISTRY[key];
+  const path = item ? item[process.platform] : key;
 
-  if (item) {
-    path = item[os];
-  } else {
-    path = key;
+  if (!path) {
+    event.sender.send('command-error', 'Invalid path or registry key.');
+    return;
   }
 
-  exec(
-    'git status',
-    // @ts-expect-error Doesn't like that it could be any.
-    { cwd: PATH_REGISTRY['lxd-tools'[os]] },
-    (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Execution error: ${error.message}`);
-        return;
-      }
-      // TODO Change where this is outputting.
-      console.log(`Test Output: ${stdout}`);
-    }
-  );
-});
+  // Note: npm requires 'shell: true' because it's a batch/cmd file on Windows.
+  // For 'git', you can safely omit it.
+  const isNpm = command === 'npm';
+  const cmd = spawn(command, args, {
+    cwd: path,
+    shell: isNpm,
+    env: process.env,
+  });
 
-ipcMain.on('test-lxd-tools', (_event) => {
-  exec(
-    'npm test',
-    // @ts-expect-error Doesn't like that it could be any.
-    { cwd: PATH_REGISTRY['lxd-tools'[os]] },
-    (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Execution error: ${error.message}`);
-        return;
-      }
-      // TODO Change where this is outputting.
-      console.log(`Test Output: ${stdout}`);
-    }
-  );
-});
+  /** @param {Buffer} data */
+  const handleData = (data) => {
+    event.sender.send('command-output', data.toString());
+  };
 
-ipcMain.on('build-lxd-tools', (_event) => {
-  exec(
-    'npm run build:dev',
-    // @ts-expect-error Doesn't like that it could be any.
-    { cwd: PATH_REGISTRY['lxd-tools'[os]] },
-    (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Execution error: ${error.message}`);
-        return;
-      }
-      // TODO Change where this is outputting.
-      console.log(`Test Output: ${stdout}`);
-    }
-  );
+  cmd.stdout.on('data', handleData);
+  cmd.stderr.on('data', handleData);
+  cmd.on('error', (err) => event.sender.send('command-error', err.message));
 });
 
 const createWindow = () => {
   const win = new BrowserWindow({
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'src/js/preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
@@ -164,7 +136,7 @@ const createWindow = () => {
     minHeight: 720,
   });
 
-  win.loadFile('src/index.html');
+  win.loadFile('index.html');
 };
 
 app.whenReady().then(() => {

@@ -4,14 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <link rel="stylesheet" href="../node_modules/@picocss/pico/css/pico.min.css">
-  <link rel="stylesheet" href="style/overrides.css">
+  <link rel="stylesheet" href="node_modules/@picocss/pico/css/pico.min.css">
+  <link rel="stylesheet" href="src/style/style.css">
+  <script src="src/js/renderer.js"></script>
 </head>
 
 <main class="container">
   <!--TODO Want better fonts-->
-  <!--TODO Style better, especially buttons-->
-  <!--TODO Need to set default text editor/ide-->
   <h1>Greg's Ops Tool</h1>
 
   <div id="tools-menus">
@@ -19,9 +18,9 @@
       <h2>LXD Tools</h2>
       <button onclick="window.electronApi.openInIde('lxd-tools')">Open lxd-tools in IDE</button>
       <button onclick="window.electronApi.open('lxd-tools')">Open lxd-tools directory</button>
-      <button onclick="window.electronApi.testLxdTools()">Test lxd-tools</button>
-      <button onclick="window.electronApi.buildLxdTools()">Build lxd-tools locally</button>
-      <button onclick="window.electronApi.status('lxd-tool')">lxd-tools git status</button>
+      <button onclick="window.electronApi.runCommand({ command: 'npm', args: ['test'], key: 'lxd-tools' });">Test lxd-tools</button>
+      <button onclick="window.electronApi.runCommand({ command: 'npm', args: ['run', 'build:dev'], key: 'lxd-tools' });">Build lxd-tools locally</button>
+      <button onclick="window.electronApi.runCommand({ command: 'git', args: ['status'], key: 'lxd-tools' });">lxd-tools git status</button>
       <button onclick="window.electronApi.openLink('https://github.com/Unity-Environmental-University/lxd-tools')">Open lxd-tools in GitHub</button>
     </div>
 
@@ -30,7 +29,13 @@
       <!--TODO Want this to evolve to let the user do text input, browse input or recent dropdown -->
       <input type="text" id="path" placeholder="Repo path" />
       <button onclick="window.electronApi.openInIde(document.getElementById('path').value)">Open Repo in IDE</button>
-      <button onclick="window.electionApi.status(document.getElementById('path').value)">Repo git status</button>
+      <button onclick="window.electronApi.runCommand({
+        command: 'git',
+        args: ['status'],
+        key: document.getElementById('path').value
+      })">
+        Repo git status
+      </button>
       <button onclick="window.electronApi.open('dev-folder')">Dev Folder</button>
     </div>
     <div id="productivity-menu">
@@ -38,6 +43,7 @@
       <button onclick="window.electronApi.openLink('https://trello.com/b/XTLJLLI9/agile-learning-tech-board?filter=member:greg_siekman')">Trello</button>
       <button onclick="window.electronApi.open('todoist')">Todoist</button>
       <button>Daily Sync</button>
+      <button>Log FAQ</button>
     </div>
     <div id="course-menu">
       <h2>Course Navigation</h2>
@@ -48,13 +54,7 @@
     </div>
   </div>
 
-  <!--
-  <div class="console-wrapper">
-    <div class="console-header">
-      <span>Console</span>
-      <button id="clear-btn">Clear</button>
-    </div>
-    <pre id="console-window"></pre>
+  <div id="output-modal" style="display:none; position:fixed; top:10%; left:10%; width:80%; height:80%; background:black; color:white; overflow:auto;">
+    <pre id="output-box"></pre>
+    <button id="close-button">Close</button>
   </div>
-</main>
- -->
