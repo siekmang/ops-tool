@@ -6,6 +6,22 @@ import { bindCourseReset } from './workflows/courseReset.js';
 import { saveToLog } from './services/saveToLog.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+  const openCourseByName = async (courseName) => {
+    const config = await getConfig();
+    const candidates =
+      await window.electronApi.getCourseCandidatesByName(courseName);
+
+    if (!candidates.length) {
+      alert(`Could not find course: ${courseName}`);
+      return;
+    }
+
+    const courseId = candidates[0].id;
+    window.electronApi.openLink(
+      `https://unity.instructure.com/courses/${courseId}`
+    );
+  };
+
   const outputModal = createOutputModal({
     modal: document.getElementById('output-modal'),
     box: document.getElementById('output-box'),
@@ -71,11 +87,9 @@ document.addEventListener('DOMContentLoaded', () => {
   );
   bindButton('todoist', () => window.electronApi.open('todoist'));
   bindButton('course-101', () =>
-    window.electronApi.openLink('https://unity.instructure.com/courses/8061526')
+    openCourseByName(`DEV_TEST101: Greg's Test Course`)
   );
-  bindButton('course-505', () =>
-    window.electronApi.openLink('https://unity.instructure.com/courses/8045765')
-  );
+  bindButton('course-505', () => openCourseByName('DEV_TEST505'));
 
   bindFaqDialog({
     openButton: document.getElementById('log-faq'),
