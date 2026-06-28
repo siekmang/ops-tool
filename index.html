@@ -42,14 +42,14 @@
       <h2>Task Tracking</h2>
       <button onclick="window.electronApi.openLink('https://trello.com/b/XTLJLLI9/agile-learning-tech-board?filter=member:greg_siekman')">Trello</button>
       <button onclick="window.electronApi.open('todoist')">Todoist</button>
-      <button onclick="window.electronApi.runScript('daily-sync')">Daily Sync</button>
-      <button onclick="window.electronApi.runScript('log-faq')">Log FAQ</button>
+      <button id="daily-sync">Daily Sync</button>
+      <button id="log-faq">Log FAQ</button>
     </div>
     <div id="course-menu">
       <h2>Course Navigation</h2>
       <button onclick="window.electronApi.openLink('https://unity.instructure.com/courses/8061526')">Open TEST101</button>
       <button onclick="window.electronApi.openLink('https://unity.instructure.com/courses/8045765')">Open TEST505</button>
-      <button onclick="window.electronApi.runScript('reset-test')">Reset Test Course</button>
+      <button id="course-reset">Reset Test Course</button>
     </div>
   </div>
 
@@ -57,3 +57,30 @@
     <pre id="output-box"></pre>
     <button id="close-button">Close</button>
   </div>
+
+  <dialog id="input-dialog">
+    <form id="input-form">
+      <label for="asker">Who asked?</label>
+      <input type="text" id="asker" required />
+      <label for="query">What was the ask?</label>
+      <input type="text" id="query" required />
+      <label for="answer">What was the answer?</label>
+      <input type="text" id="answer" required />
+      <label for="domain">What was the question about?</label>
+      <input type="text" id="domain" required />
+      <label for="effort">1-5, how laborious was this request?</label>
+      <input type="number" id="effort" required />
+      <button type="submit">Submit</button>
+      <button type="button" id="cancel-btn">Cancel</button>
+    </form>
+  </dialog>
+
+  <dialog id="sync-modal" style="width: 80%; max-width: 600px; border-radius: 8px; border: none; padding: 20px;">
+    <h3>Daily Standup Sync</h3>
+    <textarea id="sync-editor" style="width: 100%; height: 250px; font-family: monospace;"></textarea>
+
+    <div style="margin-top: 15px; display: flex; gap: 10px;">
+      <button id="copy-btn">Copy to Clipboard</button>
+      <button id="done-btn">Done</button>
+    </div>
+  </dialog>

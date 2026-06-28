@@ -4,16 +4,13 @@
 
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { spawn, exec } from 'child_process';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 // Recreate __dirname for ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-import { dailySync } from './src/js/scripts/dailySync.js';
-import { logFaq } from './src/js/scripts/logFAQ.js';
-import { resetTest } from './src/js/scripts/resetTest.js';
 
 const os = process.platform;
 
@@ -132,15 +129,14 @@ ipcMain.on('run-command', (event, { command, args, key }) => {
   cmd.on('error', (err) => event.sender.send('command-error', err.message));
 });
 
-ipcMain.on('run-script', (_event, name) => {
-  if (name === 'daily-sync') {
-    dailySync();
-  } else if (name === 'log-faq') {
-    logFaq();
-  } else if (name === 'reset-test') {
-    resetTest();
-  } else {
-    throw new Error('Unexpected script name');
+/** To get the config file */
+ipcMain.handle('get-config', () => {
+  const configPath = path.join(__dirname, 'config.json');
+  try {
+    return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  } catch (error) {
+    console.error('Failed to load config:', error);
+    return {};
   }
 });
 
