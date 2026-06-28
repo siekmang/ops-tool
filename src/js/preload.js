@@ -30,4 +30,7 @@ contextBridge.exposeInMainWorld('electronApi', {
   onError: (callback) =>
     ipcRenderer.on('command-error', (_event, data) => callback(data)),
   getConfig: () => ipcRenderer.invoke('get-config'),
+
+  saveToLog: (formData) => ipcRenderer.invoke('save-to-log', formData),
+  pickDirectory: () => ipcRenderer.invoke('pick-directory'),
 });

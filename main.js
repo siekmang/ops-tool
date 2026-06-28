@@ -2,11 +2,12 @@
 
 /** @typedef {keyof typeof PATH_REGISTRY} RegistryKey */
 
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, clipboard, dialog, ipcMain } from 'electron';
 import { spawn, exec } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { PATH_REGISTRY } from './src/js/main/path.js';
 
 // Recreate __dirname for ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -20,21 +21,6 @@ class UnexpectedOsError extends Error {
     this.name = 'UnexpectedOsError';
   }
 }
-
-const PATH_REGISTRY = {
-  todoist: {
-    darwin: '/Applications/Todoist.app',
-    win32: 'C:\\Program Files\\Vivaldi\\Application\\todoist.exe',
-  },
-  'dev-folder': {
-    darwin: '/Users/siekmang/Dev',
-    win32: 'C:\\Users\\GSiekman\\Documents\\GitHub',
-  },
-  'lxd-tools': {
-    darwin: '/Users/siekmang/Dev/Work/lxd-tools',
-    win32: 'C:\\Users\\GSiekman\\Documents\\GitHub\\lxd-tools',
-  },
-};
 
 /**
  * @param {Electron.IpcMainEvent} _event
@@ -138,6 +124,95 @@ ipcMain.handle('get-config', () => {
     console.error('Failed to load config:', error);
     return {};
   }
+});
+
+ipcMain.handle('resolve-course-id-by-name', async (_event, courseName) => {
+  if (!courseName) return null;
+
+  const course = await getSingleCourse(courseName, [169877]);
+  return course?.id ?? null;
+});
+
+ipcMain.handle('save-to-log', async (_event, formData) => {
+  const fileName = 'faqLog.json';
+  const entry = {
+    ...formData,
+    savedAt: new Date().toISOString(),
+  };
+
+  const macFilePath =
+    '/Users/siekmang/Library/CloudStorage/GoogleDrive-siekman06@gmail.com/My Drive/Ops Tool Files';
+  const windowsFilePath = path.join('G:', 'My Drive', 'Ops Tool Files');
+
+  const folderCandidates =
+    process.platform === 'darwin'
+      ? [macFilePath]
+      : process.platform === 'win32'
+        ? [windowsFilePath]
+        : [];
+
+  const existingFolder = folderCandidates.find((folder) =>
+    fs.existsSync(folder)
+  );
+
+  if (!existingFolder) {
+    const clipboardText = JSON.stringify(entry, null, 2);
+    clipboard.writeText(clipboardText);
+    return {
+      ok: false,
+      copiedToClipboard: true,
+      message:
+        'FAQ log folder was not found. The entry was copied to your clipboard.',
+    };
+  }
+
+  const filePath = path.join(existingFolder, fileName);
+  let logEntries = [];
+
+  try {
+    const existingRaw = fs.existsSync(filePath)
+      ? fs.readFileSync(filePath, 'utf8')
+      : '';
+
+    if (existingRaw.trim()) {
+      const parsed = JSON.parse(existingRaw);
+      logEntries = Array.isArray(parsed) ? parsed : [parsed];
+    }
+  } catch (error) {
+    const tempPath = path.join(existingFolder, 'faqLog.temp.json');
+    const tempContents = JSON.stringify([entry], null, 2);
+    fs.writeFileSync(tempPath, tempContents, 'utf8');
+    clipboard.writeText(JSON.stringify(entry, null, 2));
+    return {
+      ok: false,
+      copiedToClipboard: true,
+      message:
+        'FAQ log exists but could not be read. A temp file was written and the new entry was copied to your clipboard.',
+      tempPath,
+    };
+  }
+
+  logEntries.push(entry);
+  fs.writeFileSync(filePath, JSON.stringify(logEntries, null, 2), 'utf8');
+
+  return {
+    ok: true,
+    copiedToClipboard: false,
+    message: `Saved FAQ entry to ${filePath}`,
+    filePath,
+  };
+});
+
+ipcMain.handle('pick-directory', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory', 'createDirectory'],
+  });
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return null;
+  }
+
+  return result.filePaths[0];
 });
 
 const createWindow = () => {

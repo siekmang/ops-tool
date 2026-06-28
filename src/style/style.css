@@ -5,8 +5,10 @@
 
 #output-modal {
   position: fixed;
-  top: 10%; left: 10%;
-  width: 80%; height: 80%;
+  top: 10%;
+  left: 10%;
+  width: 80%;
+  height: 80%;
   background: black;
   color: white;
   display: flex;
@@ -24,6 +26,22 @@
   padding: 10px;
   background: #222;
   margin-bottom: 10px;
+}
+
+.repo-path-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+#path {
+  flex: 1 1 auto;
+}
+
+#recent-paths {
+  width: 100%;
+  margin-bottom: 0.75rem;
 }
 
 dialog::backdrop {

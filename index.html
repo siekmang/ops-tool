@@ -1,59 +1,70 @@
-<!DOCTYPE html>
+<!doctype html>
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light dark">
-  <link rel="stylesheet" href="node_modules/@picocss/pico/css/pico.min.css">
-  <link rel="stylesheet" href="src/style/style.css">
-  <script src="src/js/renderer.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="stylesheet" href="node_modules/@picocss/pico/css/pico.min.css" />
+  <link rel="stylesheet" href="src/style/style.css" />
+  <script type="module" src="src/js/renderer.js"></script>
 </head>
 
 <main class="container">
-  <!--TODO Want better fonts-->
   <h1>Greg's Ops Tool</h1>
 
   <div id="tools-menus">
     <div id="lxd-tools">
       <h2>LXD Tools</h2>
-      <button onclick="window.electronApi.openInIde('lxd-tools')">Open lxd-tools in IDE</button>
-      <button onclick="window.electronApi.open('lxd-tools')">Open lxd-tools directory</button>
-      <button onclick="window.electronApi.runCommand({ command: 'npm', args: ['test'], key: 'lxd-tools' });">Test lxd-tools</button>
-      <button onclick="window.electronApi.runCommand({ command: 'npm', args: ['run', 'build:dev'], key: 'lxd-tools' });">Build lxd-tools locally</button>
-      <button onclick="window.electronApi.runCommand({ command: 'git', args: ['status'], key: 'lxd-tools' });">lxd-tools git status</button>
-      <button onclick="window.electronApi.openLink('https://github.com/Unity-Environmental-University/lxd-tools')">Open lxd-tools in GitHub</button>
+      <button id="lxd-open-ide">Open lxd-tools in IDE</button>
+      <button id="lxd-open-dir">Open lxd-tools directory</button>
+      <button id="lxd-test">Test lxd-tools</button>
+      <button id="lxd-build">Build lxd-tools locally</button>
+      <button id="lxd-status">lxd-tools git status</button>
+      <button id="lxd-github">Open lxd-tools in GitHub</button>
     </div>
 
     <div id="misc">
       <h2>Repo Control</h2>
-      <!--TODO Want this to evolve to let the user do text input, browse input or recent dropdown -->
-      <input type="text" id="path" placeholder="Repo path" />
-      <button onclick="window.electronApi.openInIde(document.getElementById('path').value)">Open Repo in IDE</button>
-      <button onclick="window.electronApi.runCommand({
-        command: 'git',
-        args: ['status'],
-        key: document.getElementById('path').value
-      })">
-        Repo git status
-      </button>
-      <button onclick="window.electronApi.open('dev-folder')">Dev Folder</button>
+      <div class="repo-path-row">
+        <input type="text" id="path" placeholder="Repo path" />
+        <button id="browse-path" type="button">Browse</button>
+      </div>
+      <select id="recent-paths" aria-label="Recent repositories">
+        <option value="">Recent repos</option>
+      </select>
+      <button id="repo-open-ide">Open Repo in IDE</button>
+      <button id="repo-status">Repo git status</button>
+      <button id="dev-folder">Dev Folder</button>
     </div>
     <div id="productivity-menu">
       <h2>Task Tracking</h2>
-      <button onclick="window.electronApi.openLink('https://trello.com/b/XTLJLLI9/agile-learning-tech-board?filter=member:greg_siekman')">Trello</button>
-      <button onclick="window.electronApi.open('todoist')">Todoist</button>
+      <button id="trello">Trello</button>
+      <button id="todoist">Todoist</button>
       <button id="daily-sync">Daily Sync</button>
       <button id="log-faq">Log FAQ</button>
     </div>
     <div id="course-menu">
       <h2>Course Navigation</h2>
-      <button onclick="window.electronApi.openLink('https://unity.instructure.com/courses/8061526')">Open TEST101</button>
-      <button onclick="window.electronApi.openLink('https://unity.instructure.com/courses/8045765')">Open TEST505</button>
+      <button id="course-101">Open TEST101</button>
+      <button id="course-505">Open TEST505</button>
       <button id="course-reset">Reset Test Course</button>
     </div>
   </div>
 
-  <div id="output-modal" style="display:none; position:fixed; top:10%; left:10%; width:80%; height:80%; background:black; color:white; overflow:auto;">
+  <div
+    id="output-modal"
+    style="
+      display: none;
+      position: fixed;
+      top: 10%;
+      left: 10%;
+      width: 80%;
+      height: 80%;
+      background: black;
+      color: white;
+      overflow: auto;
+    "
+  >
     <pre id="output-box"></pre>
     <button id="close-button">Close</button>
   </div>
@@ -75,12 +86,61 @@
     </form>
   </dialog>
 
-  <dialog id="sync-modal" style="width: 80%; max-width: 600px; border-radius: 8px; border: none; padding: 20px;">
+  <dialog
+    id="sync-modal"
+    style="
+      width: 80%;
+      max-width: 600px;
+      border-radius: 8px;
+      border: none;
+      padding: 20px;
+    "
+  >
     <h3>Daily Standup Sync</h3>
-    <textarea id="sync-editor" style="width: 100%; height: 250px; font-family: monospace;"></textarea>
+    <textarea
+      id="sync-editor"
+      style="width: 100%; height: 250px; font-family: monospace"
+    ></textarea>
 
-    <div style="margin-top: 15px; display: flex; gap: 10px;">
+    <div style="margin-top: 15px; display: flex; gap: 10px">
       <button id="copy-btn">Copy to Clipboard</button>
       <button id="done-btn">Done</button>
     </div>
   </dialog>
+
+  <dialog
+    id="canvas-modal"
+    style="
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 350px;
+    "
+  >
+    <h3 id="modal-title">Reset Course</h3>
+    <div
+      id="modal-options"
+      style="display: flex; flex-direction: column; gap: 10px"
+    ></div>
+  </dialog>
+
+  <dialog
+    id="source-id-dialog"
+    style="
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 420px;
+    "
+  >
+    <form id="source-id-form">
+      <h3 id="source-id-title">Enter Source Course ID</h3>
+      <label for="source-id-input">Source course ID</label>
+      <input type="text" id="source-id-input" autocomplete="off" />
+      <div style="margin-top: 15px; display: flex; gap: 10px">
+        <button type="submit" id="source-id-submit">Continue</button>
+        <button type="button" id="source-id-cancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+</main>
