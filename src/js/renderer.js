@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sourceInput: document.getElementById('source-id-input'),
     sourceCancelButton: document.getElementById('source-id-cancel'),
     getConfig,
+    getCourseCandidatesByName: window.electronApi.getCourseCandidatesByName,
     resolveCourseIdByName: window.electronApi.resolveCourseIdByName,
     openLink: window.electronApi.openLink,
   });

@@ -32,6 +32,7 @@ export function bindCourseReset({
   sourceInput,
   sourceCancelButton,
   getConfig,
+  getCourseCandidatesByName,
   resolveCourseIdByName,
   openLink,
 }) {
@@ -46,11 +47,33 @@ export function bindCourseReset({
     !(sourceInput instanceof HTMLInputElement) ||
     !(sourceCancelButton instanceof HTMLElement) ||
     typeof getConfig !== 'function' ||
+    typeof getCourseCandidatesByName !== 'function' ||
     typeof resolveCourseIdByName !== 'function' ||
     typeof openLink !== 'function'
   ) {
     throw new Error('Course reset button is missing.');
   }
+
+  const chooseCourseId = async (courseName, promptLabel) => {
+    const candidates = await getCourseCandidatesByName(courseName);
+    console.log(candidates);
+
+    if (!candidates.length) return null;
+    if (candidates.length === 1) return candidates[0].id;
+
+    const choice = await showChoiceModal({
+      dialog,
+      title,
+      optionContainer,
+      message: promptLabel,
+      options: candidates.map((course) => ({
+        label: `${course.name}${course.courseCode ? ` (${course.courseCode})` : ''} [${course.id}]`,
+        value: course.id,
+      })),
+    });
+
+    return choice ?? null;
+  };
 
   button.addEventListener('click', async () => {
     const config = await getConfig();
@@ -100,18 +123,40 @@ export function bindCourseReset({
         `Resetting ${selectedCourseData.name} and importing from ${sourceCourseName}...`
       );
 
-      const { targetCourseId } = await resetAndImportCourse({
-        canvasApiLink: config.CANVAS_API_LINK,
-        apiKey: config.CANVAS_ACCESS_TOKEN,
-        targetCourseName: courseName,
+      const targetCourseId = await chooseCourseId(
+        courseName,
+        'Which course matches the target name?'
+      );
+      if (!targetCourseId) {
+        alert(`Could not find a unique match for "${courseName}".`);
+        return;
+      }
+
+      const resolvedSourceCourseId = await chooseCourseId(
         sourceCourseName,
-        resolveCourseIdByName,
-      });
+        'Which course matches the source name?'
+      );
+      if (!resolvedSourceCourseId) {
+        alert(`Could not find a unique match for "${sourceCourseName}".`);
+        return;
+      }
+
+      const { targetCourseId: refreshedTargetCourseId } =
+        await resetAndImportCourse({
+          canvasApiLink: config.CANVAS_API_LINK,
+          apiKey: config.CANVAS_ACCESS_TOKEN,
+          targetCourseId,
+          targetCourseName: courseName,
+          sourceCourseId: resolvedSourceCourseId,
+          resolveCourseIdByName,
+        });
 
       console.log('✓ Complete!');
 
       if (confirm('Open in browser?')) {
-        openLink(`https://canvas.instructure.com/courses/${targetCourseId}`);
+        openLink(
+          `https://unity.instructure.com/courses/${refreshedTargetCourseId}/content_migrations`
+        );
       }
     } catch (error) {
       console.error('Reset failed:', error);

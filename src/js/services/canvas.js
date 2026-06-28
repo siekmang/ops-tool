@@ -1,21 +1,23 @@
 export async function resetAndImportCourse({
   canvasApiLink,
   apiKey,
+  targetCourseId,
   targetCourseName,
-  sourceCourseName,
+  sourceCourseId,
+  resolveCourseIdByName,
   fetchImpl = fetch,
 }) {
-  if (!canvasApiLink || !apiKey || !targetCourseName || !sourceCourseName) {
+  if (
+    !canvasApiLink ||
+    !apiKey ||
+    !targetCourseId ||
+    !sourceCourseId ||
+    typeof resolveCourseIdByName !== 'function'
+  ) {
     throw new Error('Missing Canvas configuration.');
   }
 
   const baseUrl = canvasApiLink.replace(/\/$/, '');
-  const targetCourseId = ''; // TODO Implement a find course by name using Canvas API
-  const sourceCourseId = ''; // TODO Implement a find course by name using Canvas API
-
-  if (!targetCourseId || !sourceCourseId) {
-    throw new Error('Could not resolve one or more Canvas course IDs.');
-  }
 
   const resetRes = await fetchImpl(
     `${baseUrl}/courses/${targetCourseId}/reset_content`,
@@ -33,13 +35,11 @@ export async function resetAndImportCourse({
     throw new Error('Reset failed');
   }
 
-  const refreshedTargetCourseId = ''; // TODO Implement a find course by name using Canvas API
-  if (!refreshedTargetCourseId) {
-    throw new Error('Could not re-resolve the target course after reset.');
-  }
+  const resetData = await resetRes.json();
+  const newCourseId = resetData.id || targetCourseId;
 
   const importRes = await fetchImpl(
-    `${baseUrl}/courses/${refreshedTargetCourseId}/content_migrations`,
+    `${baseUrl}/courses/${newCourseId}/content_migrations`,
     {
       method: 'POST',
       headers: {
@@ -56,12 +56,41 @@ export async function resetAndImportCourse({
     }
   );
 
+  console.log('Import result: ', importRes);
+
   if (!importRes.ok) {
     throw new Error('Import failed');
   }
 
   return {
-    targetCourseId: refreshedTargetCourseId,
+    targetCourseId: newCourseId,
     sourceCourseId,
   };
+}
+
+export async function getCourseCandidatesByName(
+  courseName,
+  canvasApiLink,
+  apiKey
+) {
+  try {
+    const response = await fetch(
+      `${canvasApiLink}/api/v1/courses?search_term=${encodeURIComponent(courseName)}&per_page=100`,
+      {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      }
+    );
+
+    if (!response.ok) throw new Error(`Canvas API error: ${response.status}`);
+
+    const courses = await response.json();
+    return courses.map((course) => ({
+      id: course.id,
+      name: course.name,
+      courseCode: course.course_code,
+    }));
+  } catch (error) {
+    console.error('Failed to fetch courses:', error);
+    return [];
+  }
 }

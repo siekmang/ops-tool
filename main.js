@@ -15,6 +15,64 @@ const __dirname = path.dirname(__filename);
 
 const os = process.platform;
 
+async function loadCanvasConfig() {
+  const configPath = path.join(__dirname, 'config.json');
+  try {
+    return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  } catch (error) {
+    console.error('Failed to load config:', error);
+    return {};
+  }
+}
+
+async function fetchCanvasCourseCandidates(courseName) {
+  console.log('courseName: ', courseName);
+  if (!courseName) return [];
+
+  const config = await loadCanvasConfig();
+  const canvasApiLink = config.CANVAS_API_LINK;
+  const apiKey = config.CANVAS_ACCESS_TOKEN;
+  if (!canvasApiLink || !apiKey) return [];
+
+  const baseUrl = canvasApiLink.replace(/\/$/, '');
+  const params = new URLSearchParams({
+    search_by: 'course',
+    search_term: courseName,
+    per_page: '100',
+  });
+
+  const response = await fetch(`${baseUrl}/accounts/self/courses?${params}`, {
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'User-Agent': 'OpsTool/1.0.0 (Greg Siekman; opstool@siekmang.com)',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to resolve course "${courseName}"`);
+  }
+
+  const courses = await response.json();
+  console.log('Raw courses response:', courses);
+  console.log('Courses count:', courses.length);
+  const normalized = courseName.trim().toLowerCase();
+
+  return courses
+    .filter((course) => {
+      const values = [course.name, course.course_code, course.sis_course_id]
+        .filter(Boolean)
+        .map((value) => String(value).trim().toLowerCase());
+      return values.some((value) => value.includes(normalized));
+    })
+    .map((course) => ({
+      id: course.id,
+      name: course.name,
+      courseCode: course.course_code,
+      sisCourseId: course.sis_course_id,
+    }));
+}
+
 class UnexpectedOsError extends Error {
   constructor(message = 'Not on expected operating system.') {
     super(message);
@@ -117,20 +175,17 @@ ipcMain.on('run-command', (event, { command, args, key }) => {
 
 /** To get the config file */
 ipcMain.handle('get-config', () => {
-  const configPath = path.join(__dirname, 'config.json');
-  try {
-    return JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  } catch (error) {
-    console.error('Failed to load config:', error);
-    return {};
-  }
+  return loadCanvasConfig();
+});
+
+ipcMain.handle('get-course-candidates-by-name', async (_event, courseName) => {
+  return fetchCanvasCourseCandidates(courseName);
 });
 
 ipcMain.handle('resolve-course-id-by-name', async (_event, courseName) => {
-  if (!courseName) return null;
-
-  const course = await getSingleCourse(courseName, [169877]);
-  return course?.id ?? null;
+  const candidates = await fetchCanvasCourseCandidates(courseName);
+  if (candidates.length === 1) return candidates[0].id;
+  return null;
 });
 
 ipcMain.handle('save-to-log', async (_event, formData) => {

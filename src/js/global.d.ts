@@ -12,6 +12,14 @@ export interface ElectronAPI {
   onOutput: (callback: (data: string) => void) => void;
   onError: (callback: (data: string) => void) => void;
   resolveCourseIdByName: (courseName: string) => Promise<number | null>;
+  getCourseCandidatesByName: (courseName: string) => Promise<
+    Array<{
+      id: number;
+      name: string;
+      courseCode?: string | null;
+      sisCourseId?: string | null;
+    }>
+  >;
   saveToLog: (formData: Record<string, unknown>) => Promise<{
     ok: boolean;
     message: string;
